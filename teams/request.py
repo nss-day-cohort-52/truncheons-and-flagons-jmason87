@@ -6,7 +6,7 @@ import json
 
 
 def get_teams(filters):
-    with sqlite3.connect("./flagons.db") as conn:
+    with sqlite3.connect("./flagons.sqlite3") as conn:
         conn.row_factory = sqlite3.Row
         db_cursor = conn.cursor()
 
@@ -41,7 +41,7 @@ def get_teams(filters):
                             ts.id score_id,
                             ts.teamId,
                             ts.score,
-                            ts.time_stamp
+                            ts.timeStamp
                         FROM Teams t
                         LEFT OUTER JOIN TeamScore ts ON ts.teamId = t.id
                         """)
@@ -84,10 +84,51 @@ def get_teams(filters):
                                 team = teams[row['id']]
 
                             player = Player(row['player_id'], row['firstName'], row['lastName'], row['teamId'])
-                        team.players.append(player.__dict__)
+                            team.players.append(player.__dict__)
 
             json_teams = []
             for team in teams.values():
                 json_teams.append(team.__dict__)
             return json.dumps(json_teams)
 
+def get_players():
+    with sqlite3.connect("./flagons.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+        
+        db_cursor.execute("""
+        SELECT
+            p.id,
+            p.firstName,
+            p.lastName,
+            p.teamId
+        From Players p
+        """)
+        players = []
+        dataset = db_cursor.fetchall()
+        
+        for row in dataset:
+            player = Player(row['id'], row['firstName'], row['lastName'], row['teamId'])
+            players.append(player.__dict__)
+        return json.dumps(players)
+
+def get_team_scores():
+    with sqlite3.connect("./flagons.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+        
+        db_cursor.execute("""
+        SELECT
+            ts.id,
+            ts.teamId,
+            ts.score,
+            ts.timeStamp
+        From TeamScore ts
+        """)
+        team_scores = []
+        dataset = db_cursor.fetchall()
+        
+        for row in dataset:
+            team_score = TeamScore(row['id'], row['teamId'], row['score'], row['timeStamp'])
+            team_scores.append(team_score.__dict__)
+        return json.dumps(team_score)

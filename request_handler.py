@@ -1,6 +1,6 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from teams.request import get_teams
+from teams.request import get_players, get_team_scores, get_teams
 
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -20,7 +20,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         id = None
         filters = None
         url_parts = path.split("/")
-        url_parts.pop(0)
+
 
         resource = url_parts[1]
         if "?" in resource:
@@ -65,14 +65,22 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         response = {}
         (resource, id, filters) = self.parse_url(self.path)
-        response = f"{get_teams(filters)}"
+        if resource == "teams":
+            response = f"{get_teams(filters)}"
+            self.wfile.write(response.encode())
+        if resource == "players":
+            response = f"{get_players()}"
+            self.wfile.write(response.encode())
+        if resource == "teamscores":
+            response = f"{get_team_scores()}"
+            self.wfile.write(response.encode())
+      
 
-        self.wfile.write(response.encode())
 
 
 def main():
     host = ''
-    port = 8089
+    port = 8088
     HTTPServer((host, port), HandleRequests).serve_forever()
 
 
